@@ -6,12 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_image: [ubuntu-16.04 ubuntu-18.04 ubuntu-20.04 fedora-30 opensuse-leap]
-        compiler: [gcc clang]
+        docker_image: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, fedora-30, opensuse-leap]
+        compiler: [gcc, clang]
     steps:
       - name: Launch Container
         run: |
-          DOCKER_IMAGE=${{ matrix.docker_image }} CC=${{ matrix.cc }} ./.ci/travis.run
+          DOCKER_IMAGE=${{ matrix.docker_image }} CC=${{ matrix.compiler }} ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}
-        run: cat build/test-suite.log
+        run: cat build/test-suite.log || true
