@@ -11,8 +11,8 @@ jobs:
     steps:
       - name: Launch Container
         run: |
-          pwd
-          #ls
+          #pwd
+          ls
           #          DOCKER_IMAGE=${{ matrix.docker_image }} CC=${{ matrix.compiler }} ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}
