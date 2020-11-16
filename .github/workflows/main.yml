@@ -9,6 +9,8 @@ jobs:
         docker_image: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, fedora-30, opensuse-leap]
         compiler: [gcc, clang]
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
       - name: Launch Container
         run: |
           #pwd
