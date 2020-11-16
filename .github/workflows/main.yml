@@ -13,9 +13,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Launch Container
         run: |
-          #pwd
-          ls
-          #          DOCKER_IMAGE=${{ matrix.docker_image }} CC=${{ matrix.compiler }} ./.ci/travis.run
+          DOCKER_IMAGE=${{ matrix.docker_image }} CC=${{ matrix.compiler }} ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}
         run: cat build/test-suite.log || true
