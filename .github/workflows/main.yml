@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Launch Container
         run: |
-          ENABLE_COVERITY=true DOCKER_IMAGE=ubuntu-18.04 CC=gcc ./.ci/travis.run
+          REPO_BRANCH=${{ github.ref }} REPO_SLUG=${{ github.repository }} ENABLE_COVERITY=true DOCKER_IMAGE=ubuntu-18.04 CC=gcc ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}
         run: cat build/test-suite.log || true
