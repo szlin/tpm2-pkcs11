@@ -29,6 +29,9 @@ if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
        --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
        --data-urlencode "md5=1" \
        "https://scan.coverity.com/download/linux64" -o coverity_tool.md5
+
+  cat coverity_tool.md5
+  md5sum coverity_tool.tgz
   echo "$(cat coverity_tool.md5)" coverity_tool.tgz | md5sum -c
   
   echo "unpacking cov-analysis"
