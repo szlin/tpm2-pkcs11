@@ -56,6 +56,7 @@ jobs:
           DOCKER_IMAGE: ubuntu-18.04
           CC: gcc
           COVERITY_SCAN_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          COVERITY_SUBMISSION_EMAIL: william.c.roberts@gmail.com
         run: ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}

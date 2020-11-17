@@ -10,6 +10,11 @@ if [ -z "$COVERITY_SCAN_TOKEN" ]; then
   exit 1
 fi
 
+if [ -z "$COVERITY_SUBMISSION_EMAIL" ]; then
+  echo "coverity.run invoked without COVERITY_SUBMISSION_EMAIL set...exiting!"
+  exit 1
+fi
+
 # Sanity check, this should only be executing on the coverity_scan branch
 if [[ "$REPO_BRANCH" != *coverity_scan ]]; then
   echo "coverity.run invoked for non-coverity branch $REPO_BRANCH...exiting!"
@@ -88,7 +93,7 @@ scan_file=$(stat --printf='%n' tpm2-*-scan.tgz)
 
 echo "Submitting data to Coverity"
 curl --form token="$COVERITY_SCAN_TOKEN" \
-  --form email="$COV_EMAIL" \
+  --form email="$COVERITY_SUBMISSION_EMAIL" \
   --form project="$PROJECT" \
   --form file=@"$scan_file" \
   --form version="$VERSION" \
