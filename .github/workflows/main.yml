@@ -55,6 +55,7 @@ jobs:
           ENABLE_COVERITY: true
           DOCKER_IMAGE: ubuntu-18.04
           CC: gcc
+          COVERITY_SCAN_TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
         run: ./.ci/travis.run
       - name: failure
         if: ${{ failure() }}

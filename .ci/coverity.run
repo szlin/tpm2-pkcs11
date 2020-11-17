@@ -5,6 +5,11 @@ set -eo pipefail
 
 echo "PROJECT=$PROJECT"
 
+if [ -z "$COVERITY_SCAN_TOKEN" ]; then
+  echo "coverity.run invoked without COVERITY_SCAN_TOKEN set...exiting!"
+  exit 1
+fi
+
 # Sanity check, this should only be executing on the coverity_scan branch
 if [[ "$REPO_BRANCH" != *coverity_scan ]]; then
   echo "coverity.run invoked for non-coverity branch $REPO_BRANCH...exiting!"
