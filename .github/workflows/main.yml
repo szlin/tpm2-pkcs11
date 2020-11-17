@@ -39,3 +39,15 @@ jobs:
       - name: failure
         if: ${{ failure() }}
         run: cat build/test-suite.log || true
+  coverity-test:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'coverity_scan')
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Launch Container
+        run: |
+          ENABLE_COVERITY=true DOCKER_IMAGE=ubuntu-18.04 CC=gcc ./.ci/travis.run
+      - name: failure
+        if: ${{ failure() }}
+        run: cat build/test-suite.log || true
