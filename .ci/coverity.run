@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-2-Clause
 
-PROJECT="tpm2-pkcs11"
-COV_PROJECT="$PROJECT"
-COV_EMAIL=william.c.roberts@intel.com
-
-set -e
+set -eo pipefail
 
 # Sanity check, this should only be executing on the coverity_scan branch
 if [ "$REPO_BRANCH" != "coverity_scan" ]; then
@@ -13,53 +9,65 @@ if [ "$REPO_BRANCH" != "coverity_scan" ]; then
   exit 1
 fi
 
+if [[ "$CC" == clang* ]]; then
+  echo "Coverity scan branch detected, not running with clang...exiting!"
+  exit 1
+fi
+
 # branch is coverity_scan
 echo "Running coverity build"
 
 # ensure coverity_scan tool is available to the container
-if [ ! -f "$(pwd)/coverity-analysis/bin/cov-build" ]; then
-  curl --data-urlencode "project=$COV_PROJECT" \
+# We cannot package these in the docker image, as we would be distributing their software
+# for folks not coupled to our COVERITY_SCAN_TOKEN.
+if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
+  curl --data-urlencode "project=$PROJECT" \
        --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
        "https://scan.coverity.com/download/linux64" -o coverity_tool.tgz
 
-  curl --data-urlencode "project=$COV_PROJECT" \
+  curl --data-urlencode "project=$PROJECT" \
        --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
        --data-urlencode "md5=1" \
        "https://scan.coverity.com/download/linux64" -o coverity_tool.md5
   echo "$(cat coverity_tool.md5)" coverity_tool.tgz | md5sum -c
+  
+  echo "unpacking cov-analysis"
+  tar -xf coverity_tool.tgz
+  mv cov-analysis-* cov-analysis
 fi
 
-echo "unpacking cov-analysis"
-tar -xf coverity_tool.tgz
-mv cov-analysis-* cov-analysis
+export PATH=$PATH:$(pwd)/cov-analysis/bin
 
-source $DOCKER_BUILD_DIR/.ci/docker-prelude.sh
+echo "Which cov-build: $(which cov-build)"
 
-export PATH=$PATH:$DOCKER_BUILD_DIR/cov-analysis/bin
+pushd "$DOCKER_BUILD_DIR"
 
-if [[ "$CC" == clang* ]]; then
-  echo "Coverity scan branch detected, not running with clang...exiting!"
-  exit 0
-fi
+source ".ci/docker-prelude.sh"
 
 echo "Performing build with Coverity Scan"
-rm -fr $DOCKER_BUILD_DIR/cov-int
+rm -rf cov-int
 ./bootstrap && ./configure --enable-debug && make clean
 cov-build --dir $DOCKER_BUILD_DIR/cov-int make -j $(nproc)
 
 echo "Collecting Coverity data for submission"
 rm -fr README
-export AUTHOR="$(git log -1 $HEAD --pretty="%aN")"
+AUTHOR="$(git log -1 $HEAD --pretty="%aN")"
+AUTHOR_EMAIL="$(git log -1 $HEAD --pretty="%aE")"
+VERSION="$(git rev-parse HEAD)"
 echo "Name: $AUTHOR" >> README
-echo "Email: $COV_EMAIL" >> README
+echo "Email: $AUTHOR_EMAIL" >> README
 echo "Project: tpm2-pkcs11" >> README
-echo "Build-Version: $(git rev-parse HEAD)" >> README
+echo "Build-Version: $VERSION" >> README
 echo "Description: $REPO_SLUG $REPO_BRANCH" >> README
 echo "Submitted-by: tpm2-pkcs11 CI" >> README
-rm -fr tpm2-pkcs11-scan.tgz
-tar -czf $DOCKER_BUILD_DIR/tpm2-pkcs11-scan.tgz README cov-int
+echo "---README---"
+cat README
+echo "---EOF---"
 
-rm -fr README cov-int
+rm -f tpm2-pkcs11-scan.tgz
+tar -czf tpm2-pkcs11-scan.tgz README cov-int
+
+rm -rf README cov-int
 
 # upload the results
 echo "Testing for scan results..."
@@ -68,12 +76,14 @@ scan_file=$(stat --printf='%n' tpm2-*-scan.tgz)
 echo "Submitting data to Coverity"
 curl --form token="$COVERITY_SCAN_TOKEN" \
   --form email="$COV_EMAIL" \
-  --form project="$COV_PROJECT" \
+  --form project="$PROJECT" \
   --form file=@"$scan_file" \
-  --form version="$(git rev-parse HEAD)" \
+  --form version="$VERSION" \
   --form description="$REPO_SLUG $REPO_BRANCH" \
   "https://scan.coverity.com/builds?project=$PROJECT"
 
-rm -fr tpm2-*-scan.tgz
+rm -rf tpm2-*-scan.tgz
+
+popd
 
 exit 0
