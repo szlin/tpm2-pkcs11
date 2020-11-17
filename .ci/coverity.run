@@ -3,6 +3,8 @@
 
 set -eo pipefail
 
+echo "PROJECT=$PROJECT"
+
 # Sanity check, this should only be executing on the coverity_scan branch
 if [[ "$REPO_BRANCH" != *coverity_scan ]]; then
   echo "coverity.run invoked for non-coverity branch $REPO_BRANCH...exiting!"
@@ -30,10 +32,11 @@ if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
        --data-urlencode "md5=1" \
        "https://scan.coverity.com/download/linux64" -o coverity_tool.md5
 
+  stat coverity_tool.md5
   cat coverity_tool.md5
   md5sum coverity_tool.tgz
   echo "$(cat coverity_tool.md5)" coverity_tool.tgz | md5sum -c
-  
+
   echo "unpacking cov-analysis"
   tar -xf coverity_tool.tgz
   mv cov-analysis-* cov-analysis
