@@ -27,6 +27,8 @@ if [ ! -f "$(pwd)/cov-analysis/bin/cov-build" ]; then
        --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
        "https://scan.coverity.com/download/linux64" -o coverity_tool.tgz
 
+  stat coverity_tool.tgz
+
   curl --data-urlencode "project=$PROJECT" \
        --data-urlencode "token=$COVERITY_SCAN_TOKEN" \
        --data-urlencode "md5=1" \
